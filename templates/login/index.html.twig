@@ -1,0 +1,21 @@
+{# templates/login/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Connexion</h1>
+
+    {{ form_start(form) }}
+    
+    {{ form_widget(form.email) }}
+    {{ form_widget(form.password) }}
+    
+    {{ form_end(form) }}
+
+    <div id="app">
+        <!-- App.vue sera rendu ici par l'instance Vue principale dans app.js -->
+    </div>
+    
+
+ {# Chargez le script Vue.js (si nécessaire) #}
+{% endblock %}
