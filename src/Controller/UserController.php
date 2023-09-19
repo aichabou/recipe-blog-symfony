@@ -82,28 +82,4 @@ class UserController extends AbstractController
 
         return $this->json($users, 200);
     }
-
-    #[Route('/userlogin', name: 'user_login', methods: 'POST')]
-    public function userLogin(Request $request): Response
-    {
-        $user = $this->getUser();
-        if ($user) {
-            // L'utilisateur est authentifié
-            return new JsonResponse(['status' => true, 'message' => 'Connecté avec succès'], Response::HTTP_OK);
-        } else {
-            // L'authentification a échoué
-            return new JsonResponse(['status' => false, 'message' => 'Échec de l\'authentification'], Response::HTTP_UNAUTHORIZED);
-        }
-        return $this->render("user/index.html.twig");
-    }
-
-    #[Route('/user/generate-token', name: 'user_generate_token', methods: ['POST'])]
-    public function generateToken(UserInterface $user, JWTTokenManagerInterface $jwtManager): JsonResponse
-    {
-        // Générez un token JWT pour l'utilisateur
-        $token = $jwtManager->create($user);
-
-        // Vous pouvez renvoyer le token comme réponse JSON
-        return new JsonResponse(['token' => $token]);
-    }
 }
