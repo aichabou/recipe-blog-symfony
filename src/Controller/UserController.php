@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\LoginFormType;
 use App\Repository\UserRepository;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -72,8 +74,6 @@ class UserController extends AbstractController
         }
     }
 
-
-
     //Liste des utilisateurs
     #[Route('/getAllUsers', name: 'get_allusers', methods: 'GET')]
     public function getAllUsers(): Response
@@ -97,13 +97,13 @@ class UserController extends AbstractController
         return $this->render("user/index.html.twig");
     }
 
-    #[Route('/login', name: 'login', methods: 'GET')]
-    public function login(Request $request): Response
+    #[Route('/user/generate-token', name: 'user_generate_token', methods: ['POST'])]
+    public function generateToken(UserInterface $user, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
-        $form = $this->createForm(LoginFormType::class);
+        // Générez un token JWT pour l'utilisateur
+        $token = $jwtManager->create($user);
 
-        return $this->render('login/index.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        // Vous pouvez renvoyer le token comme réponse JSON
+        return new JsonResponse(['token' => $token]);
     }
 }
