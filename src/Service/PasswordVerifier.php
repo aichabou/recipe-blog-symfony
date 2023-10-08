@@ -3,25 +3,19 @@
 namespace App\Service;
 
 use App\Entity\User;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class PasswordVerifier
 {
-    /**
-     * Vérifie si le mot de passe fourni correspond au mot de passe stocké de l'utilisateur.
-     *
-     * @param User $user     L'utilisateur pour lequel le mot de passe doit être vérifié.
-     * @param string $password Le mot de passe à vérifier.
-     *
-     * @return bool True si le mot de passe est valide, sinon false.
-     */
-    public function verifyPassword(User $user, string $password): bool
+    private $passwordEncoder;
+
+    public function __construct(UserPasswordHasherInterface $passwordEncoder)
     {
-        $storedPassword = $user->getPassword(); // Obtenez le mot de passe haché stocké dans la base de données
+        $this->passwordEncoder = $passwordEncoder;
+    }
 
-        if (password_verify($password, $storedPassword)) {
-            return true; // Le mot de passe est valide
-        }
-
-        return false; // Le mot de passe est invalide
+    public function verifyPassword(User $user, string $plainPassword): bool
+    {
+        return $this->passwordEncoder->isPasswordValid($user, $plainPassword);
     }
 }

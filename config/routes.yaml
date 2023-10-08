@@ -11,3 +11,13 @@ api_login:
   path: /api/login
   controller: App\Controller\ApiController::apiLogin
   methods: ["POST"]
+
+api_register:
+  path: /api/register
+  controller: App\Controller\RegistrationController::register
+  methods: ["POST"]
+
+user_create:
+  path: "/userCreate"
+  controller: 'App\Controller\UserController::userCreate'
+  methods: ["POST"]

@@ -5,8 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\LoginFormType;
 use App\Repository\UserRepository;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,14 +16,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class UserController extends AbstractController
 {
+
     private $manager;
     private $user;
+    private $passwordHasher;
 
 
-    public function __construct(EntityManagerInterface $manager, UserRepository $user)
+    public function __construct(EntityManagerInterface $manager, UserRepository $user,  UserPasswordHasherInterface $passwordHasher)
     {
         $this->manager = $manager;
         $this->user = $user;
+        $this->passwordHasher = $passwordHasher;
     }
 
 
@@ -32,16 +34,12 @@ class UserController extends AbstractController
     #[Route('/userCreate', name: 'user_create', methods: 'POST')]
     public function userCreate(Request $request): Response
     {
-
         $data = json_decode($request->getContent(), true);
-
-
         $email = $data['email'];
-
+        $username = $data['username'];
         $password = $data['password'];
 
         //Vérifier si l'email existe déjà
-
         $email_exist = $this->user->findOneByEmail($email);
 
         if ($email_exist) {
@@ -51,16 +49,17 @@ class UserController extends AbstractController
                     'message' => 'Cet email existe déjà, veuillez le changer'
                 ],
                 Response::HTTP_CONFLICT
-
             );
         } else {
             $user = new User();
 
+            $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
+
             $user->setEmail($email)
-                ->setPassword(sha1($password));
+                ->setUsername($username)
+                ->setPassword($this->passwordHasher->hashPassword($user, $password));
 
             $this->manager->persist($user);
-
             $this->manager->flush();
 
             return new JsonResponse(
@@ -69,7 +68,6 @@ class UserController extends AbstractController
                     'message' => 'L\'utilisateur créé avec succès'
                 ],
                 Response::HTTP_CREATED
-
             );
         }
     }
@@ -81,5 +79,32 @@ class UserController extends AbstractController
         $users = $this->user->findAll();
 
         return $this->json($users, 200);
+    }
+    #[Route('/makeAdmin/{id}', name: 'make_admin', methods: 'PUT')]
+    public function makeAdmin(int $id): JsonResponse
+    {
+        $user = $this->user->find($id);
+
+        if (!$user) {
+            return new JsonResponse(
+                [
+                    'status' => false,
+                    'message' => 'Utilisateur non trouvé'
+                ],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        // Mettre à jour le rôle de l'utilisateur et le rendre administrateur
+        $user->setAsAdmin();
+        $this->manager->flush();
+
+        return new JsonResponse(
+            [
+                'status' => true,
+                'message' => 'L\'utilisateur a été promu administrateur avec succès'
+            ],
+            Response::HTTP_OK
+        );
     }
 }
