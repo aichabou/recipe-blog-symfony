@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\RecetteRepository;
+use Symfony\Component\Validator\Constraints as Assert;
+
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -17,19 +19,28 @@ class Recette
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le titre ne peut pas être vide.')]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le description ne peut pas être vide.')]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le ingredients ne peut pas être vide.')]
     private ?string $ingredients = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le instructions ne peut pas être vide.')]
     private ?string $instructions = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le image ne peut pas être vide.')]
     private ?string $image = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le video ne peut pas être vide.')]
+    private ?string $video = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $date_creation = null;
@@ -115,6 +126,18 @@ class Recette
     public function setImage(string $image): static
     {
         $this->image = $image;
+
+        return $this;
+    }
+
+    public function getVideo(): ?string
+    {
+        return $this->video;
+    }
+
+    public function setVideo(string $video): static
+    {
+        $this->video = $video;
 
         return $this;
     }
