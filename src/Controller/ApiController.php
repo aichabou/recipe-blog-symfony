@@ -36,6 +36,8 @@ class ApiController extends AbstractController
         if (!$user || !$this->passwordVerifier->verifyPassword($user, $password)) {
             return new JsonResponse(['message' => 'Authentification échouée'], JsonResponse::HTTP_UNAUTHORIZED);
         }
+        // Récupérer les rôles de l'utilisateur
+        $roles = $user->getRoles();
 
         // Générez un token JWT pour l'utilisateur
         $token = $jwtManager->create($user);
@@ -44,6 +46,6 @@ class ApiController extends AbstractController
         $this->addFlash('jwt_token', $token);
 
         // Renvoyez le token en réponse JSON
-        return new JsonResponse(['token' => $token]);
+        return new JsonResponse(['token' => $token, 'roles' => $roles]);
     }
 }
