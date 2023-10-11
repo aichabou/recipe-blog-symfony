@@ -17,12 +17,27 @@ api_register:
   controller: App\Controller\RegistrationController::register
   methods: ["POST"]
 
+recette_create:
+  path: "/recipe"
+  controller: 'App\Controller\RecipeController::create'
+  methods: ["POST"]
+
 user_create:
   path: "/userCreate"
   controller: 'App\Controller\UserController::userCreate'
   methods: ["POST"]
 
-recette_create:
-  path: "/recipe"
-  controller: 'App\Controller\RecipeController::create'
-  methods: ["POST"]
+get_allusers:
+  path: /getAllUsers
+  controller: App\Controller\UserController::getAllUsers
+  methods: ["GET"]
+
+make_admin:
+  path: /makeAdmin
+  controller: App\Controller\UserController::makeAdmin
+  methods: ["PUT"]
+
+delete_user:
+  path: /userDelete
+  controller: App\Controller\UserController::userDelete
+  methods: ["DELETE"]

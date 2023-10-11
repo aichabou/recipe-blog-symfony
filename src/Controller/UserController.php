@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\LoginFormType;
 use App\Repository\UserRepository;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -80,10 +79,10 @@ class UserController extends AbstractController
 
         return $this->json($users, 200);
     }
-    #[Route('/makeAdmin/{id}', name: 'make_admin', methods: 'PUT')]
-    public function makeAdmin(int $id): JsonResponse
+    #[Route('/makeAdmin', name: 'make_admin', methods: 'PUT')]
+    public function makeAdmin(): JsonResponse
     {
-        $user = $this->user->find($id);
+        $user = $this->user->findOneBy(['role' => 'user']);
 
         if (!$user) {
             return new JsonResponse(
@@ -103,6 +102,34 @@ class UserController extends AbstractController
             [
                 'status' => true,
                 'message' => 'L\'utilisateur a été promu administrateur avec succès'
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    #[Route('/userDelete', name: 'user_delete', methods: 'DELETE')]
+    public function userDelete(): JsonResponse
+    {
+        $user = $this->user->findOneBy(['role' => 'user']);
+
+        if (!$user) {
+            return new JsonResponse(
+                [
+                    'status' => false,
+                    'message' => 'Utilisateur non trouvé'
+                ],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        // Supprimer l'utilisateur de la base de données
+        $this->manager->remove($user);
+        $this->manager->flush();
+
+        return new JsonResponse(
+            [
+                'status' => true,
+                'message' => 'L\'utilisateur a été supprimé avec succès'
             ],
             Response::HTTP_OK
         );

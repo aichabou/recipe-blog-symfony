@@ -22,24 +22,25 @@ class RecipeController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         // Récupérer les données de la requête JSON
-        $data = json_decode($request->getContent(), true);
+
+        $requestData = json_decode($request->getContent(), true);
 
         // Vérifiez si les clés existent dans le tableau $data
-        if (!isset($data['titre'], $data['description'], $data['ingredients'], $data['instructions'], $data['image'], $data['video'])) {
+        if (!isset($requestData['titre'], $requestData['description'], $requestData['ingredients'], $requestData['instructions'], $requestData['image'], $requestData['video'])) {
             // Ajoutez un log pour afficher les données reçues
-            error_log('Data received: ' . print_r($data, true));
+            error_log('Data received: ' . print_r($requestData, true));
 
             return $this->json(['error' => 'Données invalides'], 400); // Répondez avec un code d'erreur 400 (Bad Request)
         }
 
         // Créer une nouvelle recette
         $recette = new Recette();
-        $recette->setTitre($data['titre']);
-        $recette->setDescription($data['description']);
-        $recette->setIngredients($data['ingredients']);
-        $recette->setInstructions($data['instructions']);
-        $recette->setImage($data['image']);
-        $recette->setVideo($data['video']);
+        $recette->setTitre($requestData['titre']);
+        $recette->setDescription($requestData['description']);
+        $recette->setIngredients($requestData['ingredients']);
+        $recette->setInstructions($requestData['instructions']);
+        $recette->setImage($requestData['image']);
+        $recette->setVideo($requestData['video']);
 
         // Enregistrer la recette dans la base de données
         $this->entityManager->persist($recette);

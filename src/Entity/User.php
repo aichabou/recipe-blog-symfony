@@ -189,8 +189,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->commentaire;
     }
 
-    public function setCommentaire(): Collection
+    public function setCommentaire(Collection $commentaire): static
     {
-        return $this->commentaire;
+        $this->commentaire = $commentaire;
+
+        return $this;
     }
 }
