@@ -1,1 +1,18 @@
 
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Bienvenue</h1>
+<div>
+    {% for recette in recettes %}
+        <div>
+            <a href="{{ path('app_recette_id', {'titre': recette.titre}) }}">
+                {% if recipe.image %}
+                    <img src="{{ asset('uploads/images/' ~ recette.image) }}" alt="{{ recette.titre }}" width="200" height="150">
+                {% endif %}
+                <h2>{{ recette.titre }}</h2>
+            </a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

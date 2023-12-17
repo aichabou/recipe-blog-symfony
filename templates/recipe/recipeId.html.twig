@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% endblock %}
+
+{% block body %}
+<div>
+{% if recette %}
+<h1>{{ recette.titre }}</h1>
+{% if recette.image %}
+<img src="{{ asset('uploads/images/' ~ recette.image) }}" alt="{{ recette.titre }}" width="200" height="150" />
+{% endif %}
+<ul>
+<h3> Les ingrédients </h3>
+<li>{{ recette.ingredients }}</li>
+
+</ul>
+<h3> Les instructions </h3>
+<p>{{ recette.instructions }}</p>
+ <div>
+            <a href="{{ path('app_recette_update', {'recette': recette.id}) }}">Modifier la recette</a>
+        </div>
+        <div>
+            <form action="{{ path('app_recette_delete', {'recette': recette.id}) }}" method="post">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ recette.id) }}">
+                <button type="submit">Supprimer la recette</button>
+            </form>
+        </div>
+        <div>
+        </div>
+    {% else %}
+        <p>Recette non trouvée.</p>
+    {% endif %}
+</div>
+{% endblock %}

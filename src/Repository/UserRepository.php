@@ -11,7 +11,7 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
  * @extends ServiceEntityRepository<User>
-* @implements PasswordUpgraderInterface<User>
+ * @implements PasswordUpgraderInterface<User>
  *
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
  * @method User|null findOneBy(array $criteria, array $orderBy = null)
@@ -25,9 +25,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         parent::__construct($registry, User::class);
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof User) {
@@ -39,28 +36,40 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Create a new user
+     */
+    public function createUser(array $userData): User
+    {
+        $user = new User();
+        $this->updateUser($user, $userData);
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $user;
+    }
+
+    /**
+     * Update an existing user
+     */
+    public function updateUser(User $user, array $userData): User
+    {
+        $user->setEmail($userData['email'] ?? $user->getEmail());
+        $user->setUsername($userData['username'] ?? $user->getUsername());
+        $user->setPassword($userData['password'] ?? $user->getPassword());
+
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
+
+        return $user;
+    }
+
+    /**
+     * Delete a user
+     */
+    public function deleteUser(User $user): void
+    {
+        $this->getEntityManager()->remove($user);
+        $this->getEntityManager()->flush();
+    }
 }
