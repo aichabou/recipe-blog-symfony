@@ -54,7 +54,7 @@ class RecipeController extends AbstractController
     {
         $query = $entityManager->createQuery(
             'SELECT r
-            FROM App\Entity\recette r
+            FROM App\Entity\Recette r
             WHERE r.titre = :titre'
         )->setParameter('titre', $titre);
 
