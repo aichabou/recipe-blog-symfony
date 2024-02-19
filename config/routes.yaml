@@ -17,6 +17,16 @@ recette_create:
   controller: 'App\Controller\RecipeController::create'
   methods: ["POST"]
 
+upload_image:
+    path: /upload-image
+    controller: App\Controller\ImageController::uploadImage
+    methods: [POST]
+
+upload_video:
+    path: /upload-video
+    controller: App\Controller\VideoController::uploadVideo
+    methods: [POST]
+
 user_create:
   path: "/userCreate"
   controller: 'App\Controller\UserController::userCreate'
