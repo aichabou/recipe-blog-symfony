@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Controller;
+
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,4 +39,3 @@ class VideoController extends AbstractController
         return new Response('Aucune vidéo n\'a été téléchargée.', Response::HTTP_BAD_REQUEST);
     }
 }
-
