@@ -4,33 +4,22 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-
 class UserController extends AbstractController
 {
+    private $userRepo;
 
-    private $manager;
-    private $user;
-    private $passwordHasher;
-
-
-    public function __construct(EntityManagerInterface $manager, UserRepository $user,  UserPasswordHasherInterface $passwordHasher)
+    public function __construct(UserRepository $userRepo)
     {
-        $this->manager = $manager;
-        $this->user = $user;
-        $this->passwordHasher = $passwordHasher;
+        $this->userRepo = $userRepo;
     }
 
-
-    //Création d'un utilisateur
-    #[Route('/userCreate', name: 'user_create', methods: 'POST')]
+    #[Route('/userCreate', name: 'user_create', methods: ['POST'])]
     public function userCreate(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -38,10 +27,11 @@ class UserController extends AbstractController
         $username = $data['username'];
         $password = $data['password'];
 
-        //Vérifier si l'email existe déjà
-        $email_exist = $this->user->findOneByEmail($email);
+        // Validate and handle request data as needed
 
-        if ($email_exist) {
+        $existingUser = $this->userRepo->findOneByEmail($email);
+
+        if ($existingUser) {
             return new JsonResponse(
                 [
                     'status' => false,
@@ -49,40 +39,29 @@ class UserController extends AbstractController
                 ],
                 Response::HTTP_CONFLICT
             );
-        } else {
-            $user = new User();
-
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
-
-            $user->setEmail($email)
-                ->setUsername($username)
-                ->setPassword($this->passwordHasher->hashPassword($user, $password));
-
-            $this->manager->persist($user);
-            $this->manager->flush();
-
-            return new JsonResponse(
-                [
-                    'status' => true,
-                    'message' => 'L\'utilisateur créé avec succès'
-                ],
-                Response::HTTP_CREATED
-            );
         }
+
+        $userData = [
+            'email' => $email,
+            'username' => $username,
+            'password' => $password,
+        ];
+
+        $createdUser = $this->userRepo->createUser($userData);
+
+        return new JsonResponse(
+            [
+                'status' => true,
+                'message' => 'L\'utilisateur créé avec succès',
+            ],
+            Response::HTTP_CREATED
+        );
     }
 
-    //Liste des utilisateurs
-    #[Route('/getAllUsers', name: 'get_allusers', methods: 'GET')]
-    public function getAllUsers(): Response
+    #[Route('/userUpdate/{id}', name: 'user_update', methods: ['PUT'])]
+    public function userUpdate(int $id, Request $request): JsonResponse
     {
-        $users = $this->user->findAll();
-
-        return $this->json($users, 200);
-    }
-    #[Route('/makeAdmin', name: 'make_admin', methods: 'PUT')]
-    public function makeAdmin(): JsonResponse
-    {
-        $user = $this->user->findOneBy(['role' => 'user']);
+        $user = $this->userRepo->find($id);
 
         if (!$user) {
             return new JsonResponse(
@@ -94,23 +73,25 @@ class UserController extends AbstractController
             );
         }
 
-        // Mettre à jour le rôle de l'utilisateur et le rendre administrateur
-        $user->setAsAdmin();
-        $this->manager->flush();
+        $data = json_decode($request->getContent(), true);
+
+        // Validate and handle request data as needed
+
+        $updatedUser = $this->userRepo->updateUser($user, $data);
 
         return new JsonResponse(
             [
                 'status' => true,
-                'message' => 'L\'utilisateur a été promu administrateur avec succès'
+                'message' => 'L\'utilisateur a été mis à jour avec succès',
             ],
             Response::HTTP_OK
         );
     }
 
-    #[Route('/userDelete', name: 'user_delete', methods: 'DELETE')]
-    public function userDelete(): JsonResponse
+    #[Route('/userDelete/{id}', name: 'user_delete', methods: ['DELETE'])]
+    public function userDelete(int $id): JsonResponse
     {
-        $user = $this->user->findOneBy(['role' => 'user']);
+        $user = $this->userRepo->find($id);
 
         if (!$user) {
             return new JsonResponse(
@@ -122,9 +103,7 @@ class UserController extends AbstractController
             );
         }
 
-        // Supprimer l'utilisateur de la base de données
-        $this->manager->remove($user);
-        $this->manager->flush();
+        $this->userRepo->deleteUser($user);
 
         return new JsonResponse(
             [

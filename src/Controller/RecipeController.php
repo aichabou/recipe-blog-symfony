@@ -3,93 +3,99 @@
 namespace App\Controller;
 
 use App\Entity\Recette;
+use App\Form\RecetteType;
+use App\Service\RecetteService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 class RecipeController extends AbstractController
 {
-    private $entityManager;
+    private $recetteService;
+    private EntityManagerInterface $em;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    /**
+     * @param EntityManagerInterface $em
+     */
+    public function __construct(EntityManagerInterface $em)
     {
-        $this->entityManager = $entityManager;
+        $this->em = $em;
     }
 
-    #[Route('/recipe', name: 'recette_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    #[Route('/recette/add', name: 'app_recette')]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        // Récupérer les données de la requête JSON
+        $recette = new recette();
 
-        $requestData = json_decode($request->getContent(), true);
+        $form = $this->createForm(RecetteType::class, $recette);
+        $form->handleRequest($request);
 
-        // Vérifiez si les clés existent dans le tableau $data
-        if (!isset($requestData['titre'], $requestData['description'], $requestData['ingredients'], $requestData['instructions'], $requestData['image'], $requestData['video'])) {
-            // Ajoutez un log pour afficher les données reçues
-            error_log('Data received: ' . print_r($requestData, true));
 
-            return $this->json(['error' => 'Données invalides'], 400); // Répondez avec un code d'erreur 400 (Bad Request)
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($recette);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('app_home', ['id' => $recette->getId()]);
         }
 
-        // Créer une nouvelle recette
-        $recette = new Recette();
-        $recette->setTitre($requestData['titre']);
-        $recette->setDescription($requestData['description']);
-        $recette->setIngredients($requestData['ingredients']);
-        $recette->setInstructions($requestData['instructions']);
-        $recette->setImage($requestData['image']);
-        $recette->setVideo($requestData['video']);
-
-        // Enregistrer la recette dans la base de données
-        $this->entityManager->persist($recette);
-        $this->entityManager->flush();
-
-        // Répondre avec la recette créée
-        return $this->json(['message' => 'Recette créée avec succès', 'id' => $recette->getId()]);
+        return $this->render('recipe/recipe.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
-    #[Route('/recipe/{id}', name: 'recette_update', methods: ['PUT'])]
-    public function update(Request $request, Recette $recette): JsonResponse
+    /**
+     * @param recette $recette
+     * @return Response
+     */
+    #[Route('/recette/find/{titre}', name: 'app_recette_id')]
+    public function show(EntityManagerInterface $entityManager, string $titre): Response
     {
-        try {
-            // Récupérer et valider les données de la requête JSON
-            $data = json_decode($request->getContent(), true);
-            // ... Effectuer la validation des données ici ...
+        $query = $entityManager->createQuery(
+            'SELECT r
+            FROM App\Entity\Recette r
+            WHERE r.titre = :titre'
+        )->setParameter('titre', $titre);
 
-            $query = $this->entityManager->createQuery('
-                UPDATE App\Entity\Recette r
-                SET r.titre = :titre, r.description = :description, r.ingredients = :ingredients, r.instructions = :instructions, r.image = :image, r.video = :video
-                WHERE r.id = :id
-            ')
-                ->setParameter('titre', $data['titre'])
-                ->setParameter('description', $data['description'])
-                ->setParameter('ingredients', $data['ingredients'])
-                ->setParameter('instructions', $data['instructions'])
-                ->setParameter('image', $data['image'])
-                ->setParameter('video', $data['video'])
-                ->setParameter('id', $recette->getId());
+        $recette = $query->getOneOrNullResult();
 
-            $query->execute();
+        return $this->render('recipe/recipeId.html.twig', [
+            'recette' => $recette
+        ]);
+    }
 
-            // Répondre avec un message de succès
-            return $this->json(['message' => 'Recette mise à jour avec succès']);
-        } catch (\Exception $e) {
-            // Gérer les exceptions ici
-            return $this->json(['error' => 'Erreur lors de la mise à jour de la recette'], 500);
+    /**
+     * @param recette $recette
+     * @param Request $request
+     * @return Response
+     */
+    #[Route('/recette/update/{recette}', name: 'app_recette_update')]
+    public function update(recette $recette, Request $request): Response
+    {
+        $form = $this->createForm(RecetteType::class, $recette);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->em->persist($recette);
+            $this->em->flush();
+            return $this->redirectToRoute('app_recette');
         }
+        return $this->render('recipe/recipe.html.twig', [
+            'form' => $form->createView()
+        ]);
     }
 
-
-    #[Route('/recipe/{id}', name: 'recette_delete', methods: ['DELETE'])]
-    public function delete(Recette $recette): JsonResponse
+    /**
+     * @param recette $recette
+     * @param Request $request
+     * @return Response
+     */
+    #[Route('/recette/delete/{recette}', name: 'app_recette_delete')]
+    public function delete(recette $recette, Request $request): Response
     {
-        // Supprimer la recette de la base de données
-        $this->entityManager->remove($recette);
-        $this->entityManager->flush();
+        $this->em->remove($recette);
+        $this->em->flush();
 
-        // Répondre avec un message de succès
-        return $this->json(['message' => 'Recette supprimée avec succès']);
+        return $this->redirectToRoute("app_recette");
     }
 }
