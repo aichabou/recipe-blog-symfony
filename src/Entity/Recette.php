@@ -45,7 +45,7 @@ class Recette
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $date_creation = null;
 
-    #[ORM\OneToMany(mappedBy: 'Recette', targetEntity: user::class)]
+    #[ORM\OneToMany(mappedBy: 'Recette', targetEntity: User::class)]
     private Collection $user_id;
 
     #[ORM\ManyToOne(inversedBy: 'categorie_id')]

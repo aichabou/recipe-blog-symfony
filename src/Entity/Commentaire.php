@@ -22,7 +22,7 @@ class Commentaire
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $date_creation = null;
 
-    #[ORM\OneToMany(mappedBy: 'commentaire', targetEntity: user::class)]
+    #[ORM\OneToMany(mappedBy: 'commentaire', targetEntity: User::class)]
     private Collection $user_id;
 
     #[ORM\OneToMany(mappedBy: 'commentaire', targetEntity: Recette::class)]
@@ -66,7 +66,7 @@ class Commentaire
     /**
      * @return Collection<int, user>
      */
-    
+
     public function getUserId(): Collection
     {
         return $this->user_id;

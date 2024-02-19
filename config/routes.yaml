@@ -14,7 +14,7 @@ api_login:
 
 recette_create:
   path: "/recipe"
-  controller: 'App\Controller\RecipeController::create'
+  controller: 'App\Controller\RecipeController::new'
   methods: ["POST"]
 
 user_create:

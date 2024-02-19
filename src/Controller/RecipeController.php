@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Recette;
 use App\Form\RecetteType;
 use App\Service\RecetteService;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,22 +28,19 @@ class RecipeController extends AbstractController
     #[Route('/recette/add', name: 'app_recette')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $recette = new recette();
+        $recette = new Recette();
 
         $form = $this->createForm(RecetteType::class, $recette);
         $form->handleRequest($request);
-
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($recette);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_home', ['id' => $recette->getId()]);
+            return new JsonResponse(['id' => $recette->getId()], JsonResponse::HTTP_CREATED);
         }
 
-        return $this->render('recipe/recipe.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        return new JsonResponse(['errors' => (string) $form->getErrors(true, false)], JsonResponse::HTTP_BAD_REQUEST);
     }
 
     /**
